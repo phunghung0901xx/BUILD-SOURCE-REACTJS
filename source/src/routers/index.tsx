@@ -1,6 +1,5 @@
-// import { lazy, memo, Suspense } from 'react'
-// import { BrowserRouter, useRoutes } from 'react-router-dom'
-// import LoadingFallback from '@components/LoadingFallback'
+import { lazy, memo, Suspense } from 'react'
+import { BrowserRouter } from 'react-router-dom'
 // import PrivateRouter from '@components/PrivateRouter'
 // import MobileLayout from '@components/MobileLayout'
 // import { useMobile } from '@hooks/useResponsiv
@@ -56,15 +55,18 @@
 //     return routes
 // }
 
-// const ApplicationRouters = () => {
-//     const isMobile = useMobile()
+const ApplicationRouters = () => {
+    //  const isMobile = useMobile()
 
-//     return (
-//         <BrowserRouter>
-//         <Suspense fallback= {< LoadingFallback fullscreen />}> { isMobile?<MobileRoutes /> : <PcRoutes />}</Suspense >
-//             </BrowserRouter>
-//   )
-// }
+    return (
+        <>
+        </>
+        // <BrowserRouter>
+        // <Suspense> </Suspense >
+        // < /BrowserRouter>
+     
+   )
+ }
 
 // // Prevent re-render router objecsts
-// export default memo(ApplicationRouters)
+export default memo(ApplicationRouters)
