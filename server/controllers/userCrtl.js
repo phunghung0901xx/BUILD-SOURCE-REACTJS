@@ -19,3 +19,4 @@ const loginUserCrtl = asyncHandler(async (req, res) => {
     console.log(email,password)
 })
 module.exports = { createUser, loginUserCrtl }
+
