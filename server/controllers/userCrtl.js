@@ -1,7 +1,8 @@
 const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler")
-const generateToken = require("../config/jwtToken")
-
+const {generateToken} = require("../config/jwtToken")
+const validateMongoDbId = require("../ultis/validateMongoDbId")
+const { generateRefreshToken } = require("../config/refreshToken")
 //Create User
 const createUser = asyncHandler(async (req, res) => {
     const email = req.body.email
@@ -24,6 +25,17 @@ const loginUserCrtl = asyncHandler(async (req, res) => {
     // check if user exists or not 
     const findUser = await User.findOne({ email })
     if (findUser && await findUser.isPasswordMatched(password)) {
+        const refreshToken = await generateRefreshToken(findUser?._id)
+        const updateUser = await User.findByIdAndUpdate(findUser?.id, {
+            refreshToken: refreshToken
+        }, {
+            new: true
+        })
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            maxAge: 72 * 60 * 60 * 1000
+        }
+        )
         res.json({
             _id: findUser?._id,
             fristName: findUser?.fristName,
@@ -52,6 +64,7 @@ const getAllUser = asyncHandler(async (req, res) => {
 //Get a single user
 const getaUser = asyncHandler(async (req, res) => {
     const { _id } = req.user
+    validateMongoDbId(_id)
     try {
         const getaUser = await User.findById(_id)
         res.json({
@@ -63,9 +76,20 @@ const getaUser = asyncHandler(async (req, res) => {
     }
 })
 
+//handle refresh token
+
+const handleRefreshToken = asyncHandler(async (req,res) => {
+    const cookie = req.cookies
+    if(!cookie?.refreshToken) throw new Error("No Refresh Token in Cookies")
+    const refreshToken = cookie.refreshToken
+    const user = await User.findOne({ refreshToken })
+    res.json(user)
+})
+
 //Delete a single user
 const deleteUser = asyncHandler(async (req, res) => {
     const { id } = req.params
+    validateMongoDbId(_id)
     try {
         const deleteUser = await User.findByIdAndDelete(id)
         res.json({
@@ -80,19 +104,20 @@ const deleteUser = asyncHandler(async (req, res) => {
 //Update a user
 const updateUser = asyncHandler(async (req, res) => {
     const { id } = req.params
+    validateMongoDbId(_id)
     try {
         const updateUser = await User.findByIdAndUpdate
-        (id,
-            {
-                firstName: req?.body?.firstName,
-                lastName: req?.body?.lastName,
-                email: req?.body?.email,
-                mobile: req?.body?.mobile
-            },
-            {
-                new: true
-            }
-        )
+            (id,
+                {
+                    firstName: req?.body?.firstName,
+                    lastName: req?.body?.lastName,
+                    email: req?.body?.email,
+                    mobile: req?.body?.mobile
+                },
+                {
+                    new: true
+                }
+            )
         res.json(updateUser)
 
     }
@@ -100,4 +125,45 @@ const updateUser = asyncHandler(async (req, res) => {
         throw new Error(error)
     }
 })
-module.exports = { createUser, loginUserCrtl, getAllUser, getaUser, deleteUser, updateUser }
+
+const blockUser = asyncHandler(async (req, res) => {
+    const { _id } = req.params
+    validateMongoDbId(_id)
+    try {
+        const block = await User.findByIdAndUpdate(id, {
+            isBlock: true,
+        },
+            {
+                new: true,
+            }
+        )
+        res.json({
+            message: "User Blocked"
+        })
+    }
+    catch (error) {
+        throw new Error(error)
+    }
+})
+
+const unblockUser = asyncHandler(async (req, res) => {
+    const { _id } = req.params
+    validateMongoDbId(_id)
+    try {
+        const unblock = await User.findByIdAndUpdate(id, {
+            isBlock: false,
+        },
+            {
+                new: true,
+            }
+        )
+        res.json({
+            message: "User unblocked"
+        })
+    }
+    catch (error) {
+        throw new Error(error)
+    }
+
+})
+module.exports = { createUser, loginUserCrtl, getAllUser, getaUser, deleteUser, updateUser, blockUser, unblockUser, handleRefreshToken }
