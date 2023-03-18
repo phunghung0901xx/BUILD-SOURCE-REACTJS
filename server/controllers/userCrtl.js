@@ -1,8 +1,9 @@
 const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler")
-const {generateToken} = require("../config/jwtToken")
+const { generateToken } = require("../config/jwtToken")
 const validateMongoDbId = require("../ultis/validateMongoDbId")
 const { generateRefreshToken } = require("../config/refreshToken")
+const jwt = require("jsonwebtoken")
 //Create User
 const createUser = asyncHandler(async (req, res) => {
     const email = req.body.email
@@ -36,6 +37,7 @@ const loginUserCrtl = asyncHandler(async (req, res) => {
             maxAge: 72 * 60 * 60 * 1000
         }
         )
+
         res.json({
             _id: findUser?._id,
             fristName: findUser?.fristName,
@@ -44,6 +46,7 @@ const loginUserCrtl = asyncHandler(async (req, res) => {
             mobile: findUser?.mobile,
             token: generateToken(findUser?._id)
         })
+
     }
     else {
         throw new Error("Invalid Credentials")
@@ -78,14 +81,42 @@ const getaUser = asyncHandler(async (req, res) => {
 
 //handle refresh token
 
-const handleRefreshToken = asyncHandler(async (req,res) => {
+const handleRefreshToken = asyncHandler(async (req, res) => {
     const cookie = req.cookies
-    if(!cookie?.refreshToken) throw new Error("No Refresh Token in Cookies")
+    if (!cookie?.refreshToken) throw new Error("No Refresh Token in Cookies")
     const refreshToken = cookie.refreshToken
     const user = await User.findOne({ refreshToken })
-    res.json(user)
+    if (!user) throw new Error("No Refresh token present in db or not matched")
+    jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+        if (err || user.id !== decoded.id) {
+            throw new Error("There is something wrong with refresh token ")
+        }
+        const accessToken = generateToken(user?._id)
+        res.json({ accessToken })
+    })
 })
-
+//logout user 
+const logout = asyncHandler(async (req, res) => {
+    const cookie = req.cookies
+    if (!cookie?.refreshToken) throw new Error("No Refresh Token in Cookies")
+    const refreshToken = cookie.refreshToken
+    const user = await User.findOne({ refreshToken })
+    if (!user) {
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: true,
+        })
+        res.sendStatus(200)
+    }
+    await User.findOneAndUpdate(refreshToken, {
+        refreshToken: "",
+    })
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+    })
+    res.sendStatus(200)
+})
 //Delete a single user
 const deleteUser = asyncHandler(async (req, res) => {
     const { id } = req.params
@@ -166,4 +197,16 @@ const unblockUser = asyncHandler(async (req, res) => {
     }
 
 })
-module.exports = { createUser, loginUserCrtl, getAllUser, getaUser, deleteUser, updateUser, blockUser, unblockUser, handleRefreshToken }
+module.exports =
+{
+    createUser,
+    loginUserCrtl,
+    getAllUser,
+    getaUser,
+    deleteUser,
+    updateUser,
+    blockUser,
+    unblockUser,
+    handleRefreshToken,
+    logout
+}
