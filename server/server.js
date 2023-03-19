@@ -8,12 +8,13 @@ const authRouter = require('./routes/authRoute')
 const bodyParser = require("body-parser")
 const {notFound, errorHandler} = require("./middlewares/errorHandler")
 const cookies = require("cookie-parser");
-
+const productRouter = require("./routes/productRoute")
 
 dbConnect()
 app.use(cookies())
 app.use(express.json());
 app.use('/api/user', authRouter)
+app.use('/api/product', productRouter)
 
 
 app.use(notFound)
