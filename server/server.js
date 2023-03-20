@@ -9,8 +9,10 @@ const bodyParser = require("body-parser")
 const {notFound, errorHandler} = require("./middlewares/errorHandler")
 const cookies = require("cookie-parser");
 const productRouter = require("./routes/productRoute")
-
+const morgan = require("morgan")
 dbConnect()
+
+app.use(morgan("dev"))
 app.use(cookies())
 app.use(express.json());
 app.use('/api/user', authRouter)
