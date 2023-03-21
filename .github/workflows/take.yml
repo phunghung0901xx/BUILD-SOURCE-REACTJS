@@ -18,7 +18,7 @@ jobs:
 
     - name: take the issue
 
-       uses: blackgirlbytes/take-action@handle-if-assigned
+           uses: bdougie/take-action@main
 
       env:
 
