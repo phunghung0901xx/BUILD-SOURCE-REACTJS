@@ -25,17 +25,18 @@ var productSchema = new mongoose.Schema({
     catagory: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Category",
-        require:true,
+        require: true,
     },
     brand: {
         type: String,
-        require:true,
+        require: true,
     },
     quantity: {
         type: Number,
-        require:true,
+        require: true,
+        select: false
     },
-    solid: {
+    sold: {
         type: Number,
         default: 0,
     },
@@ -44,14 +45,14 @@ var productSchema = new mongoose.Schema({
     },
     color: {
         type: String,
-        reuire:true,
+        reuire: true,
     },
     rating: [{
         star: Number,
         postedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
     }]
 },
-{timestamps:true}
+    { timestamps: true }
 );
 
 //Export the model
