@@ -4,8 +4,8 @@ const { authMiddleware, isAdmin } = require("../middlewares/authMiddlewares")
 const router = express.Router()
 
 router.post('/register', createUser)
-router.post('/login', loginUserCrtl)
 router.put('/password', authMiddleware, updatePassword)
+router.post('/login', loginUserCrtl)
 router.get('/refresh', handleRefreshToken)
 router.get('/allUsers', getAllUser)
 

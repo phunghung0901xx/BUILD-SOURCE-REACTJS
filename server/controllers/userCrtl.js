@@ -200,8 +200,9 @@ const unblockUser = asyncHandler(async (req, res) => {
 
 const updatePassword =  asyncHandler(async(req,res) => {
     const {_id} = req.user
-    const password = req.body
+    const password = req.body.password
     console.log(password)
+    console.log(req.body)
     validateMongoDbId(_id)
     const user = await User.findById(_id)
     if(password) {
